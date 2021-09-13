@@ -20,9 +20,9 @@ Route::get('/', function () {
 
 Route::get('/dashboard', function () {
     return view('dashboard');
-})->middleware(['auth'])->name('dashboard');
+})->middleware(['auth:users'])->name('dashboard');
 
 Route::get('/component_test1', [ComponentTestController::class, 'show1']);
 Route::get('/component_test2', [ComponentTestController::class, 'show2']);
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
