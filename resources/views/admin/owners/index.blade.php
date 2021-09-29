@@ -46,6 +46,7 @@
                         @endforeach
                         </tbody>
                     </table>
+                    {{ $owners->links() }}
                     </div>
                     <div class="flex pl-4 mt-4 lg:w-2/3 w-full mx-auto">
                 </div>
