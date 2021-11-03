@@ -43,7 +43,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request)
     {
-        Auth::guard('user')->logout();
+        Auth::guard('users')->logout();
 
         $request->session()->invalidate();
 
