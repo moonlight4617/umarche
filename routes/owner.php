@@ -37,7 +37,7 @@ Route::prefix('shops')->middleware('auth:owners')->group(function () {
 Route::resource('images', ImageController::class)
   ->middleware('auth:owners')->except('show');
 
-Route::resource('product', ProductController::class)
+Route::resource('products', ProductController::class)
   ->middleware('auth:owners')->except('show');
 
 Route::get('/dashboard', function () {
