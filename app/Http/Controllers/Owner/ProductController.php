@@ -13,6 +13,8 @@ use App\Models\Stock;
 use App\Models\Shop;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\ProductRequest;
+use Throwable;
+use Illuminate\Support\Facades\Log;
 
 
 class ProductController extends Controller
