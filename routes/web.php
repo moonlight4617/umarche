@@ -21,6 +21,7 @@ Route::get('/', function () {
 
 Route::middleware('auth:users')->group(function () {
     Route::get('/', [ItemController::class, 'index'])->name('items.index');
+    Route::get('show/{item}', [ItemController::class, 'show'])->name('items.show');
 });
 
 // Route::get('/dashboard', function () {
