@@ -10,8 +10,10 @@
       <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6 bg-white border-b border-gray-200">
           <x-auth-validation-errors class="mb-4" :errors="$errors" />
+          <x-flash-message status="session('info')" />
           <form method="post" action="{{ route('owner.products.update', ['product' => $product->id]) }}">
             @csrf
+            @method('put')
             <div class="-m-2">
               <div class="p-2 w-1/2 mx-auto">
                 <div class="relative">
@@ -46,8 +48,8 @@
               </div>
               <div class="p-2 w-1/2 mx-auto">
                 <div class="relative flex justify-around">
-                  <div><input type="radio" name="type" value="1" class="mr-2" checked>追加</div>
-                  <div><input type="radio" name="type" value="2" class="mr-2">削減</div>
+                  <div><input type="radio" name="type" value="{{ \Constant::PRODUCT_LIST['add']}}" class="mr-2" checked>追加</div>
+                  <div><input type="radio" name="type" value="{{ \Constant::PRODUCT_LIST['reduce']}}" class="mr-2">削減</div>
                 </div>
               </div>
 
@@ -77,7 +79,7 @@
                     @foreach($categories as $category)
                     <optgroup label="{{ $category->name }}">
                       @foreach ($category->secondary as $secondary)
-                        <option value="{{ $secondary->id }} @if($secondary->id === $product->secondary_category_id) selected @endif">
+                        <option value="{{ $secondary->id }}" @if( $secondary->id === $product->secondary_category_id) selected @endif>
                         {{ $secondary->name }}
                         </option>
                       @endforeach
@@ -102,6 +104,15 @@
               <button type="submit" class="text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">更新</button>
             </div>
           </form>
+          <form id="delete_{{$product->id}}" method="post" action="{{ route('owner.products.destroy', ['product' => $product->id]) }}">
+            @csrf
+            @method('delete')
+            <div class="md:px-4 py-3">
+              <div class="flex justify-around p-2 w-full mt-32">
+              <a href="#" data-id="{{ $product->id }}" onclick="deletePost(this)" class="text-white bg-red-400 border-0 py-2 px-4 focus:outline-none hover:bg-red-500 rounded">削除</a>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -121,5 +132,12 @@
         document.getElementById(imageName + '_hidden').value = imageId 
         MicroModal.close(modal); //モーダルを閉じる
       }) })
+
+    function deletePost(e) {
+      'use strict';
+      if (confirm('本当に削除してもいいですか?')) {
+      document.getElementById('delete_' + e.dataset.id).submit();
+      }
+    }
   </script>
 </x-app-layout>

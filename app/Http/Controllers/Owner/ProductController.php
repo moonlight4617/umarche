@@ -12,6 +12,9 @@ use App\Models\PrimaryCategory;
 use App\Models\Stock;
 use App\Models\Shop;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\ProductRequest;
+use Throwable;
+use Illuminate\Support\Facades\Log;
 
 
 class ProductController extends Controller
@@ -71,33 +74,8 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:50',
-            'information' => 'required|string|max:1000',
-            'price' =>
-            'required|integer',
-            'sort_order' =>
-            'nullable|integer',
-            'quantity' =>
-            'required|integer',
-            'shop_id' =>
-            'required|exists:shops,id',
-            'category' =>
-            'required|exists:secondary_categories,id',
-            'image1' =>
-            'nullable|exists:images,id',
-            'image2' =>
-            'nullable|exists:images,id',
-            'image3' =>
-            'nullable|exists:images,id',
-            'image4' =>
-            'nullable|exists:images,id',
-            'is_selling' =>
-            'required',
-        ]);
-
         try {
             DB::transaction(function () use ($request) {
                 $product = Product::create([
@@ -156,16 +134,56 @@ class ProductController extends Controller
         return view('owner.products.edit', compact('product', 'quantity', 'shops', 'images', 'categories'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
+    public function update(ProductRequest $request, $id)
     {
-        //
+        $request->validate([
+            'current_quantity' => 'required|integer'
+        ]);
+
+        $product = Product::findOrFail($id);
+        $quantity = Stock::where('product_id', $product->id)->sum('quantity');
+
+        if ($request->current_quantity !== $quantity) {
+            $id = $request->route()->parameter('product');
+            return redirect()->route('owner.products.edit', ['product' => $id])
+                ->with(['message' => '在庫数が変更されています。再度確認してください。', 'status' => 'alert']);
+        } else {
+            try {
+                DB::transaction(function () use ($request, $product) {
+                    $product->name = $request->name;
+                    $product->information = $request->information;
+                    $product->price = $request->price;
+                    $product->sort_order = $request->sort_order;
+                    $product->shop_id = $request->shop_id;
+                    $product->secondary_category_id = $request->category;
+                    $product->image1 = $request->image1;
+                    $product->image2 = $request->image2;
+                    $product->image3 = $request->image3;
+                    $product->image4 = $request->image4;
+                    $product->is_selling = $request->is_selling;
+                    $product->save();
+
+                    if ($request->type === \Constant::PRODUCT_LIST['add']) {
+                        $newQuantity = $request->quantity;
+                    }
+                    if ($request->type === \Constant::PRODUCT_LIST['reduce']) {
+                        $newQuantity = $request->quantity * -1;
+                    }
+                    Stock::create([
+                        'product_id' => $product->id,
+                        'type' => $request->type,
+                        'quantity' => $newQuantity
+                    ]);
+                }, 2);
+            } catch (Throwable $e) {
+                Log::error($e);
+                throw $e;
+            }
+
+            return redirect()
+                ->route('owner.products.index')
+                ->with(['message' => '商品情報を更新しました', 'status' => 'info']);
+        }
     }
 
     /**
@@ -176,6 +194,10 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
-        //
+        Product::findOrFail($id)->delete();
+
+        return redirect()
+            ->route('owner.products.index')
+            ->with(['message' => '商品を削除しました。', 'status' => 'alert']);
     }
 }
