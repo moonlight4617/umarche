@@ -15,4 +15,3 @@ storage/app/public/productsフォルダ内に
 storage/app/public/shopsフォルダを作成し 
 画像を保存してください。
 
-## 補足
